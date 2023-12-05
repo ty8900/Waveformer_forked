@@ -22,8 +22,12 @@ from torchmetrics.functional import(
     scale_invariant_signal_distortion_ratio as si_sdr)
 
 from src.helpers import utils
-from src.training.synthetic_dataset import FSDSoundScapesDataset, tensorboard_add_metrics
-from src.training.synthetic_dataset import tensorboard_add_sample
+# from src.training.synthetic_dataset import FSDSoundScapesDataset, tensorboard_add_metrics
+# from src.training.synthetic_dataset import tensorboard_add_sample
+
+from src.training.aihub_dataset import AihubDataset, tensorboard_add_metrics
+from src.training.aihub_dataset import tensorboard_add_sample
+
 
 def test_epoch(model: nn.Module, device: torch.device,
                test_loader: torch.utils.data.dataloader.DataLoader,

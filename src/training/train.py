@@ -24,8 +24,11 @@ from torchmetrics.functional import(
 
 from src.helpers import utils
 from src.training.eval import test_epoch
-from src.training.synthetic_dataset import FSDSoundScapesDataset as Dataset
-from src.training.synthetic_dataset import tensorboard_add_sample
+# from src.training.synthetic_dataset import FSDSoundScapesDataset as Dataset
+# from src.training.synthetic_dataset import tensorboard_add_sample
+
+from src.training.aihub_dataset import AihubDataset as Dataset
+from src.training.aihub_dataset import tensorboard_add_sample, collate_fn
 
 def train_epoch(model: nn.Module, device: torch.device,
                 optimizer: optim.Optimizer,
@@ -140,9 +143,9 @@ def train(args: argparse.Namespace):
     #print(args.batch_size, args.eval_batch_size)
     train_loader = torch.utils.data.DataLoader(data_train,
                                                batch_size=args.batch_size,
-                                               shuffle=True, **kwargs)
+                                               shuffle=True, collate_fn=collate_fn, **kwargs)
     val_loader = torch.utils.data.DataLoader(data_val,
-                                             batch_size=args.eval_batch_size,
+                                             batch_size=args.eval_batch_size, collate_fn=collate_fn, 
                                              **kwargs)
 
     # Set up model
