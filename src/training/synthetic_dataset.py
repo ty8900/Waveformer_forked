@@ -114,7 +114,6 @@ class FSDSoundScapesDataset(torch.utils.data.Dataset):  # type: ignore
         for l in labels:
             gt = gt + torch.from_numpy(isolated_events[l]).permute(1, 0)
         gt = self.resampler(gt.to(torch.float))
-
         return mixture, label_vector, gt #, jams
 
 def tensorboard_add_sample(writer, tag, sample, step, params):

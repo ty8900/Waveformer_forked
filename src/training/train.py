@@ -142,8 +142,8 @@ def train(args: argparse.Namespace):
     # Set up data loaders
     #print(args.batch_size, args.eval_batch_size)
     train_loader = torch.utils.data.DataLoader(data_train,
-                                               batch_size=args.batch_size,
-                                               shuffle=True, collate_fn=collate_fn, **kwargs)
+                                               batch_size=args.batch_size, collate_fn=collate_fn,
+                                               shuffle=True,  **kwargs) 
     val_loader = torch.utils.data.DataLoader(data_val,
                                              batch_size=args.eval_batch_size, collate_fn=collate_fn, 
                                              **kwargs)

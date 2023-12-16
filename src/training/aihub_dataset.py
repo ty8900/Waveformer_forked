@@ -20,23 +20,25 @@ from random import randrange
 class AihubDataset(torch.utils.data.Dataset):  # type: ignore
     
     _labels = [
-        'outer', 'inner', 'ground_transport', 'train_transport', 'water_transport', 'air_transport'
+        'outer', 'inner', 'ground_transport', 'train_transport', 'water_transport', 'air_transport','heavy_equipment', 'light_equipment', 'factory'
     ]
 
-    def __init__(self, input_dir, dset='', sr=None,
+    def __init__(self, input_dir, dset='', sr=None, tokenize_len=200000,
                  resample_rate=None, max_num_targets=1):
         assert dset in ['train', 'val', 'test'], \
             "`dset` must be one of ['train', 'val', 'test']"
         
         self.dset = dset
         self.max_num_targets = max_num_targets
+        self.tokenize_len = tokenize_len
         # local: training_local_total-14_df.pkl
+        # global: training_total-14_df.pkl
         if dset == 'train':
-            self.df_dir = '~/total_data/aihub_noise/Training/training_total-14_df.pkl'
+            self.df_dir = '~/total_data/aihub_noise/Training/training_local_total-1234_df.pkl'
         elif dset == 'val':
-            self.df_dir = '~/total_data/aihub_noise/Validation/validation_total-14_df.pkl'
+            self.df_dir = '~/total_data/aihub_noise/Validation/validation_local_136-1234_df.pkl'
         elif dset == 'test': # TODO
-            self.df_dir = '~/total_data/aihub_noise/Validation/validation_total-14_df.pkl'
+            self.df_dir = '~/total_data/aihub_noise/Validation/validation_local_136-1234_df.pkl'
         
         self.df = pd.read_pickle(self.df_dir)
 
@@ -63,14 +65,15 @@ class AihubDataset(torch.utils.data.Dataset):  # type: ignore
     def __getitem__(self, idx):
         col = self.df.iloc[:, idx]
         orig_wav, _ = librosa.load(col['orig_wav_path'], sr=col['sr']) # dim 1
+        
+        rand_len = random.randint(0, len(orig_wav)-self.tokenize_len)
         mixture = torch.from_numpy(np.expand_dims(orig_wav, axis=0))
         noise_wav, _ = librosa.load(col['noise_wav_path'], sr=col['sr'])
         gt = torch.from_numpy(np.expand_dims(noise_wav, axis=0))
         # vocal_wav = librosa.load(col['orig_wav_path'], sr=col['sr'])
         labels = [col['noise_label']]
         label_vector = self._get_label_vector(labels)
-
-        return mixture, label_vector, gt
+        return mixture[:, rand_len: min(len(orig_wav), rand_len+self.tokenize_len)], label_vector, gt[:, rand_len: min(len(orig_wav), rand_len+self.tokenize_len)]
 
 def collate_fn(batch):
     mlen_mixtures = max([len(x[0][0]) for x in batch])
@@ -119,7 +122,7 @@ def tensorboard_add_metrics(writer, tag, metrics, label, step):
     """
     Add metrics to tensorboard.
     """
-    vals = np.asarray(metrics['scale_invariant_signal_noise_ratio'])
+    vals = np.asarray(metrics['_scale_invariant_signal_noise_ratio'])
 
     writer.add_histogram('%s/%s' % (tag, 'SI-SNRi'), vals, step)
 

@@ -25,7 +25,7 @@ from src.helpers import utils
 # from src.training.synthetic_dataset import FSDSoundScapesDataset, tensorboard_add_metrics
 # from src.training.synthetic_dataset import tensorboard_add_sample
 
-from src.training.aihub_dataset import AihubDataset, tensorboard_add_metrics
+from src.training.aihub_dataset import AihubDataset, tensorboard_add_metrics, collate_fn
 from src.training.aihub_dataset import tensorboard_add_sample
 
 
@@ -97,7 +97,7 @@ def evaluate(network, args: argparse.Namespace):
     """
 
     # Load dataset
-    data_test = FSDSoundScapesDataset(**args.test_data)
+    data_test = AihubDataset(**args.test_data)
     logging.info("Loaded test dataset at %s containing %d elements" %
                  (args.test_data['input_dir'], len(data_test)))
  
@@ -125,7 +125,7 @@ def evaluate(network, args: argparse.Namespace):
 
     # Set up data loader
     test_loader = torch.utils.data.DataLoader(data_test,
-                                              batch_size=args.eval_batch_size,
+                                              batch_size=args.eval_batch_size, collate_fn=collate_fn
                                               **kwargs)
 
     # Set up model
