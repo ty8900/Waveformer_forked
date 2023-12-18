@@ -2,9 +2,11 @@
 The main training script for training on synthetic data
 """
 
+
 import argparse
 import multiprocessing
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 import logging
 from pathlib import Path
 import random
@@ -27,8 +29,11 @@ from src.training.eval import test_epoch
 # from src.training.synthetic_dataset import FSDSoundScapesDataset as Dataset
 # from src.training.synthetic_dataset import tensorboard_add_sample
 
-from src.training.aihub_dataset import AihubDataset as Dataset
-from src.training.aihub_dataset import tensorboard_add_sample, collate_fn
+# from src.training.aihub_dataset import AihubDataset as Dataset
+# from src.training.aihub_dataset import tensorboard_add_sample, collate_fn
+
+from src.training.aihub_utterance_dataset import AihubUtteranceDataset as Dataset
+from src.training.aihub_utterance_dataset import tensorboard_add_sample, collate_fn
 
 def train_epoch(model: nn.Module, device: torch.device,
                 optimizer: optim.Optimizer,

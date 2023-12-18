@@ -17,7 +17,7 @@ import torchaudio.transforms as AT
 import torch.nn.functional as F
 from random import randrange
 
-class AihubDataset(torch.utils.data.Dataset):  # type: ignore
+class AihubUtteranceDataset(torch.utils.data.Dataset):  # type: ignore
     
     _labels = [
         'outer', 'inner', 'ground_transport', 'train_transport', 'water_transport', 'air_transport','heavy_equipment', 'light_equipment', 'factory'
@@ -34,11 +34,11 @@ class AihubDataset(torch.utils.data.Dataset):  # type: ignore
         # local: training_local_total-14_df.pkl
         # global: training_total-14_df.pkl
         if dset == 'train':
-            self.df_dir = '~/total_data/aihub_noise/Training/training_local_total-1234_df.pkl'
+            self.df_dir = '~/total_data/aihub_noise/Training/training_utterance_local_total-1234_df.pkl'
         elif dset == 'val':
-            self.df_dir = '~/total_data/aihub_noise/Validation/validation_local_total-1234_df.pkl'
+            self.df_dir = '~/total_data/aihub_noise/Validation/validation_utterance_local_total-1234_df.pkl'
         elif dset == 'test': # TODO
-            self.df_dir = '~/total_data/aihub_noise/Validation/validation_local_total-1234_df.pkl'
+            self.df_dir = '~/total_data/aihub_noise/Validation/validation_utterance_local_total-1234_df.pkl'
         
         self.df = pd.read_pickle(self.df_dir)
 
@@ -50,10 +50,10 @@ class AihubDataset(torch.utils.data.Dataset):  # type: ignore
             self.sr = sr
     
     def _get_label_vector(self, labels):
-        vector = torch.zeros(len(AihubDataset._labels))
+        vector = torch.zeros(len(AihubUtteranceDataset._labels))
         
         for label in labels:
-            idx = AihubDataset._labels.index(label)
+            idx = AihubUtteranceDataset._labels.index(label)
             assert vector[idx] == 0, 'Repeated'
             vector[idx] = 1
 
@@ -73,7 +73,7 @@ class AihubDataset(torch.utils.data.Dataset):  # type: ignore
         # vocal_wav = librosa.load(col['orig_wav_path'], sr=col['sr'])
         labels = [col['noise_label']]
         label_vector = self._get_label_vector(labels)
-        return mixture[:, rand_len: min(len(orig_wav), rand_len+self.tokenize_len)], label_vector, gt[:, rand_len: min(len(orig_wav), rand_len+self.tokenize_len)]
+        return mixture, label_vector, gt
 
 def collate_fn(batch):
     mlen_mixtures = max([len(x[0][0]) for x in batch])
@@ -107,7 +107,7 @@ def tensorboard_add_sample(writer, tag, sample, step, params):
         label = []
         for i in range(len(l[b, :])):
             if l[b, i] == 1:
-                label.append(AihubDataset._labels[i])
+                label.append(AihubUtteranceDataset._labels[i])
 
         # Add waveforms
         rows = 3 # input, output, gt
@@ -126,11 +126,11 @@ def tensorboard_add_metrics(writer, tag, metrics, label, step):
 
     writer.add_histogram('%s/%s' % (tag, 'SI-SNRi'), vals, step)
 
-    label_names = [AihubDataset._labels[torch.argmax(_)] for _ in label]
+    label_names = [AihubUtteranceDataset._labels[torch.argmax(_)] for _ in label]
     for l, v in zip(label_names, vals):
         writer.add_histogram('%s/%s' % (tag, l), v, step)
     
 
 
 if __name__ == '__main__':
-    my_ds = AihubDataset('', dset='train')
+    my_ds = AihubUtteranceDataset('', dset='train')
